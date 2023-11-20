@@ -4,7 +4,7 @@ import typing as tp
 from employees.models import Employee
 
 from .exceptions import WorkHasNoEmployees, WorkHasNoCustomer
-from .models import Work
+from .models import Work, ScratchpadRecord, Scratchpad
 
 
 def create_work(
@@ -68,3 +68,41 @@ def get_work(work_id: int) -> Work:
 def delete_work(work_id: int):
     work = Work.objects.get(id=work_id)
     work.delete()
+
+
+def create_scratchpad(start_date: datetime.date, end_date: datetime.date) -> Scratchpad:
+    works = Work.objects.filter(date__gte=start_date, date__lte=end_date)
+    scratchpad = Scratchpad.objects.create(start_date=start_date, end_date=end_date)
+    for work in works:
+        scratchpad_record = ScratchpadRecord.objects.create(
+            customer=work.customer,
+            date=work.date,
+            hours=work.hours,
+        )
+        scratchpad_record.employees.add(*work.employees.all())
+        scratchpad.records.add(scratchpad_record)
+    return scratchpad
+
+
+def get_scratchpad(scratchpad_id: int) -> Scratchpad:
+    scratchpad = Scratchpad.objects.get(id=scratchpad_id)
+    return scratchpad
+
+
+def delete_scratchpad(scratchpad_id: int):
+    scratchpad = Scratchpad.objects.get(id=scratchpad_id)
+    scratchpad.delete()
+
+
+def update_scratchpad_record(scratchpad_id: int, record_id: int, hours: int) -> ScratchpadRecord:
+    scratchpad = Scratchpad.objects.get(id=scratchpad_id)
+    record = scratchpad.records.get(id=record_id)
+    record.hours = hours
+    record.save()
+    return record
+
+
+def delete_scratchpad_record(scratchpad_id: int, record_id: int):
+    scratchpad = Scratchpad.objects.get(id=scratchpad_id)
+    record = scratchpad.records.get(id=record_id)
+    record.delete()
