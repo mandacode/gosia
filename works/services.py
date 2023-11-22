@@ -94,10 +94,11 @@ def delete_scratchpad(scratchpad_id: int):
     scratchpad.delete()
 
 
-def update_scratchpad_record(scratchpad_id: int, record_id: int, hours: int) -> ScratchpadRecord:
+def update_scratchpad_record(scratchpad_id: int, record_id: int, hours: tp.Optional[int] = None) -> ScratchpadRecord:
     scratchpad = Scratchpad.objects.get(id=scratchpad_id)
     record = scratchpad.records.get(id=record_id)
-    record.hours = hours
+    if hours:
+        record.hours = hours
     record.save()
     return record
 

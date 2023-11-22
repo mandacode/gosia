@@ -54,10 +54,13 @@ class CreateScratchpadSerializer(serializers.Serializer):
 
 class UpdateScratchpadRecordSerializer(serializers.Serializer):
 
-    hours = serializers.DecimalField(max_digits=3, decimal_places=2)
+    hours = serializers.DecimalField(max_digits=3, decimal_places=2, required=False)
 
     def validate(self, attrs: dict) -> dict:
         hours = attrs.get("hours")
+
+        if not hours:
+            return attrs
 
         if hours < 0:
             raise serializers.ValidationError("Hours must be greater than zero.")
