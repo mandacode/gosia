@@ -1,6 +1,6 @@
 import typing as tp
 
-from .models import Employee
+from works.models import Employee
 
 
 def list_employees() -> tp.List[Employee]:

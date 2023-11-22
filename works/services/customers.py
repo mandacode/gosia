@@ -1,6 +1,6 @@
 import typing as tp
 
-from .models import Customer
+from works.models import Customer
 
 
 def list_customers() -> tp.List[Customer]:
