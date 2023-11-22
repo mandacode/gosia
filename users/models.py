@@ -2,6 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+class UserType(models.TextChoices):
+    CUSTOMER = 'customer'
+    EMPLOYEE = 'employee'
+    OWNER = 'owner'
+
+
 class Address(models.Model):
     zip_code = models.CharField(max_length=6)
     street_address = models.CharField(max_length=255)
@@ -29,6 +35,27 @@ class EmployeeProfile(models.Model):
     nip = models.CharField(max_length=10)
 
 
+class BankAccount(models.Model):
+
+    bank_name = models.CharField(max_length=255)
+    iban = models.CharField(max_length=255)
+    bic = models.CharField(max_length=255)
+
+
+class OwnerProfile(models.Model):
+
+    email = models.EmailField(max_length=255)
+    phone_number = models.CharField(max_length=255)
+    ust_idnr = models.CharField(max_length=100)
+    nip = models.CharField(max_length=10)
+    bank_account = models.OneToOneField(
+        BankAccount,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+
 class UserProfile(models.Model):
 
     user = models.OneToOneField(
@@ -42,7 +69,11 @@ class UserProfile(models.Model):
         null=True,
         blank=True
     )
-    is_customer = models.BooleanField(default=False)
+    type = models.CharField(
+        max_length=10,
+        choices=UserType.choices,
+        default=UserType.EMPLOYEE
+    )
     customer_profile = models.OneToOneField(
         CustomerProfile,
         on_delete=models.SET_NULL,
@@ -56,6 +87,13 @@ class UserProfile(models.Model):
         null=True,
         blank=True,
         related_name='employee_profile'
+    )
+    owner_profile = models.OneToOneField(
+        OwnerProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='owner_profile'
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

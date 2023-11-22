@@ -107,5 +107,6 @@ class WorksDetailAPIView(APIView):
 # employee_profile
 # customer_profile
 # is_customer
+# TODO create head profile
 
 # TODO FLOW: create works -> create scratchpad -> update scratchpad -> create bill -> print bill

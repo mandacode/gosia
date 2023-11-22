@@ -2,7 +2,8 @@ import typing as tp
 
 from django.contrib.auth.models import User
 
-from .models import UserProfile, Address, CustomerProfile, EmployeeProfile
+from .models import UserProfile, Address, CustomerProfile, EmployeeProfile, UserType, HeadProfile, OwnerProfile, \
+    BankAccount
 from .exceptions import UserAlreadyExists
 
 
@@ -61,6 +62,7 @@ def create_employee(
         user=user,
         address=address,
         employee_profile=employee_profile,
+        user_type=UserType.EMPLOYEE
     )
 
     return user
@@ -91,8 +93,56 @@ def create_customer(
     UserProfile.objects.create(
         user=user,
         address=address,
-        is_customer=True,
+        user_type=UserType.CUSTOMER,
         customer_profile=customer_profile,
+    )
+
+    return user
+
+
+def create_owner(
+        first_name: str,
+        last_name: str,
+        zip_code: str,
+        street_address: str,
+        city: str,
+        country: str,
+        email: str,
+        phone_number: str,
+        bank_name: str,
+        iban: str,
+        bic: str,
+        nip: str,
+        ust_idnr: str
+) -> User:
+    user = create_user(first_name=first_name, last_name=last_name)
+
+    address = create_address(
+        zip_code=zip_code,
+        street_address=street_address,
+        city=city,
+        country=country
+    )
+
+    bank_account = BankAccount.objects.create(
+        bank_name=bank_name,
+        iban=iban,
+        bic=bic,
+    )
+
+    owner_profile = OwnerProfile.objects.create(
+        email=email,
+        phone_number=phone_number,
+        ust_idnr=ust_idnr,
+        bank_account=bank_account,
+        nip=nip,
+    )
+
+    UserProfile.objects.create(
+        user=user,
+        address=address,
+        user_type=UserType.OWNER,
+        owner_profile=owner_profile,
     )
 
     return user
@@ -100,17 +150,26 @@ def create_customer(
 
 def get_employees() -> tp.List[User]:
     employees = User.objects.filter(
-        profile__is_customer=False,
         profile__customer_profile__isnull=True,
-        profile__employee_profile__isnull=False
+        profile__employee_profile__isnull=False,
+        profile__owner_profile__isnull=True
     )
     return employees
 
 
 def get_customers() -> tp.List[User]:
     customers = User.objects.filter(
-        profile__is_customer=True,
+        profile__customer_profile__isnull=False,
         profile__employee_profile__isnull=True,
-        profile__customer_profile__isnull=False
+        profile__owner_profile__isnull=True
     )
     return customers
+
+
+def get_owner() -> User:
+    owner = User.objects.get(
+        profile__employee_profile__isnull=True,
+        profile__customer_profile__isnull=True,
+        profile__owner_profile__isnull=False
+    )
+    return owner

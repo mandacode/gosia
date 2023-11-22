@@ -87,3 +87,14 @@ class CustomerSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=100)
     profile = CustomerUserProfileSerializer()
+
+
+class CreateOwnerSerializer(CreateUserSerializer):
+
+    nip = serializers.CharField(max_length=10)
+    email = serializers.EmailField(max_length=255)
+    phone_number_pl = serializers.CharField(max_length=255)
+    phone_number_de = serializers.CharField(max_length=255)
+    bank_name = serializers.CharField(max_length=255)
+    iban = serializers.CharField(max_length=255)
+    bic = serializers.CharField(max_length=255)
