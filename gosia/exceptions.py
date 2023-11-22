@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+import dataclasses
 
 
-@dataclass
+@dataclasses.dataclass
 class GosiaError(Exception):
     message: str

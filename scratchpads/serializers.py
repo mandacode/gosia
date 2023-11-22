@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from works.serializers import LightPersonSerializer, WorkSerializer
+from users.serializers import LightUserSerializer
+from works.serializers import WorkSerializer
 
 
 class ScratchpadSerializer(serializers.Serializer):
@@ -46,7 +47,7 @@ class UpdateScratchpadRecordSerializer(serializers.Serializer):
 class ScratchpadRecordSerializer(serializers.Serializer):
 
     id = serializers.IntegerField()
-    customer = LightPersonSerializer()
-    employees = LightPersonSerializer(many=True)
+    customer = LightUserSerializer()
+    employees = LightUserSerializer(many=True)
     date = serializers.DateField()
     hours = serializers.DecimalField(max_digits=3, decimal_places=2)

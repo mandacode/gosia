@@ -1,8 +1,15 @@
 import datetime
 import typing as tp
 
-from works.models import Work, Employee
-from works.exceptions import WorkHasNoEmployees, WorkHasNoCustomer
+from django.contrib.auth.models import User
+
+from works.models import Work
+from works.exceptions import (
+    WorkHasNoEmployees,
+    WorkHasNoCustomer,
+    WorkHasInvalidEmployee,
+    WorkHasInvalidCustomer
+)
 
 
 def create_work(
@@ -11,13 +18,22 @@ def create_work(
         date: datetime.date,
         hours: int
 ) -> Work:
-    employees = Employee.objects.filter(id__in=employee_ids)
+
+    employees = User.objects.filter(id__in=employee_ids)
+
+    if employees.filter(profile__is_customer=True).count():
+        raise WorkHasInvalidEmployee
 
     if not employees.count():
-        raise WorkHasNoEmployees("Work must have at least one employee.")
+        raise WorkHasNoEmployees
+
+    customer = User.objects.get(id=customer_id)
+
+    if not customer.profile.is_customer:
+        raise WorkHasInvalidCustomer
 
     work = Work.objects.create(
-        customer_id=customer_id,
+        customer=customer,
         date=date,
         hours=hours,
     )
@@ -42,7 +58,7 @@ def update_work(
     work = Work.objects.get(id=work_id)
 
     if employee_ids:
-        employees = Employee.objects.filter(id__in=employee_ids)
+        employees = User.objects.filter(id__in=employee_ids)
         work.employees.set(employees)
 
     if customer_id:

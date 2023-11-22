@@ -5,172 +5,23 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.request import Request
 
+from gosia.exceptions import GosiaError
 from .serializers import (
     WorkSerializer,
     CreateWorkSerializer,
     UpdateWorkSerializer,
-    CustomerSerializer,
-    CreateCustomerSerializer,
-    UpdateCustomerSerializer,
-    EmployeeSerializer,
-    CreateEmployeeSerializer,
-    UpdateEmployeeSerializer
 )
 
-from .services.works import (
+from .services import (
     list_works,
     create_work,
     update_work,
     delete_work,
     get_work
 )
-from .services.customers import (
-    update_customer,
-    list_customers,
-    create_customer,
-    get_customer,
-    delete_customer,
-)
-from .services.employees import (
-    list_employees,
-    create_employee,
-    get_employee,
-    update_employee,
-    delete_employee
-)
-from .models import Work, Customer, Employee
+from .models import Work
 
 logger = logging.getLogger(__name__)
-
-
-class CustomersAPIView(APIView):
-
-    def get(self, request: Request) -> Response:
-        employees = list_customers()
-
-        serializer = CustomerSerializer(employees, many=True)
-        logger.info("List all customers.")
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-    def post(self, request: Request) -> Response:
-        input_serializer = CreateCustomerSerializer(data=request.data)
-        input_serializer.is_valid(raise_exception=True)
-
-        customer = create_customer(**input_serializer.validated_data)
-
-        output_serializer = CustomerSerializer(customer)
-        logger.info("Create new customer.")
-        return Response(
-            data=output_serializer.data, status=status.HTTP_201_CREATED
-        )
-
-
-class CustomersDetailAPIView(APIView):
-
-    def get(self, request: Request, customer_id: int) -> Response:
-        try:
-            customer = get_customer(customer_id)
-        except Customer.DoesNotExist:
-            data = {"error": "Customer not found."}
-            logger.error(data["error"])
-            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = CustomerSerializer(customer)
-        logger.info(f"Get customer | Id: {customer_id}")
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request: Request, customer_id: int) -> Response:
-        input_serializer = UpdateCustomerSerializer(data=request.data)
-        input_serializer.is_valid(raise_exception=True)
-
-        try:
-            customer = update_customer(
-                customer_id=customer_id, **input_serializer.validated_data
-            )
-        except Customer.DoesNotExist:
-            data = {"error": "Customer not found."}
-            logger.error(data["error"])
-            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
-
-        output_serializer = CustomerSerializer(customer)
-        logger.info(f"Update customer | Id: {customer_id}")
-        return Response(data=output_serializer.data, status=status.HTTP_200_OK)
-
-    def delete(self, request: Request, customer_id: int) -> Response:
-        try:
-            delete_customer(customer_id=customer_id)
-        except Customer.DoesNotExist:
-            data = {"error": "Customer not found."}
-            logger.error(data["error"])
-            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
-
-        logger.info(f"Delete customer | Id: {customer_id}")
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class EmployeesAPIView(APIView):
-
-    def get(self, request: Request) -> Response:
-        employees = list_employees()
-
-        serializer = EmployeeSerializer(employees, many=True)
-        logger.info("List all employees.")
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-    def post(self, request: Request) -> Response:
-        input_serializer = CreateEmployeeSerializer(data=request.data)
-        input_serializer.is_valid(raise_exception=True)
-
-        employee = create_employee(**input_serializer.validated_data)
-
-        output_serializer = EmployeeSerializer(employee)
-        logger.info("Create new employee.")
-        return Response(
-            data=output_serializer.data, status=status.HTTP_201_CREATED
-        )
-
-
-class EmployeesDetailAPIView(APIView):
-
-    def get(self, request: Request, employee_id: int) -> Response:
-        try:
-            employee = get_employee(employee_id)
-        except Employee.DoesNotExist:
-            data = {"error": "Employee not found."}
-            logger.error(data["error"])
-            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = EmployeeSerializer(employee)
-        logger.info(f"Get employee | Id: {employee_id}")
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request: Request, employee_id: int) -> Response:
-        input_serializer = UpdateEmployeeSerializer(data=request.data)
-        input_serializer.is_valid(raise_exception=True)
-
-        try:
-            employee = update_employee(
-                employee_id=employee_id, **input_serializer.validated_data
-            )
-        except Employee.DoesNotExist:
-            data = {"error": "Employee not found."}
-            logger.error(data["error"])
-            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
-
-        output_serializer = EmployeeSerializer(employee)
-        logger.info(f"Update employee | Id: {employee_id}")
-        return Response(data=output_serializer.data, status=status.HTTP_200_OK)
-
-    def delete(self, request: Request, employee_id: int) -> Response:
-        try:
-            delete_employee(employee_id=employee_id)
-        except Employee.DoesNotExist:
-            data = {"error": "Employee not found."}
-            logger.error(data["error"])
-            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
-
-        logger.info(f"Delete employee | Id: {employee_id}")
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class WorksAPIView(APIView):
@@ -186,7 +37,11 @@ class WorksAPIView(APIView):
         input_serializer = CreateWorkSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
-        work = create_work(**input_serializer.validated_data)
+        try:
+            work = create_work(**input_serializer.validated_data)
+        except GosiaError as error:
+            logger.error(error.message)
+            return Response(data={'detail': error.message}, status=status.HTTP_400_BAD_REQUEST)
 
         output_serializer = WorkSerializer(work)
         logger.info("Create new work.")

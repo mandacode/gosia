@@ -1,13 +1,13 @@
 from django.db import models
 
-from works.models import Customer, Employee
+from django.contrib.auth.models import User
 
 
 class ScratchpadRecord(models.Model):
     """Copy of work instance for scratchpad purposes."""
 
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    employees = models.ManyToManyField(Employee)
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='customer_scratchpad_records')
+    employees = models.ManyToManyField(User, related_name='employee_scratchpad_records')
     date = models.DateField()
     hours = models.DecimalField(max_digits=4, decimal_places=2)
 
