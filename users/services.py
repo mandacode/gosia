@@ -2,7 +2,7 @@ import typing as tp
 
 from django.contrib.auth.models import User
 
-from .models import UserProfile, Address, CustomerProfile, EmployeeProfile, UserType, HeadProfile, OwnerProfile, \
+from .models import UserProfile, Address, CustomerProfile, EmployeeProfile, UserType, OwnerProfile, \
     BankAccount
 from .exceptions import UserAlreadyExists
 
@@ -54,15 +54,15 @@ def create_employee(
         country=country,
     )
 
-    employee_profile = EmployeeProfile.objects.create(
-        nip=nip,
-    )
-
-    UserProfile.objects.create(
+    user_profile = UserProfile.objects.create(
         user=user,
         address=address,
-        employee_profile=employee_profile,
-        user_type=UserType.EMPLOYEE
+        type=UserType.EMPLOYEE
+    )
+
+    EmployeeProfile.objects.create(
+        nip=nip,
+        user_profile=user_profile,
     )
 
     return user
@@ -86,15 +86,15 @@ def create_customer(
         country=country
     )
 
-    customer_profile = CustomerProfile.objects.create(
-        hourly_rate=hourly_rate,
-    )
-
-    UserProfile.objects.create(
+    user_profile = UserProfile.objects.create(
         user=user,
         address=address,
-        user_type=UserType.CUSTOMER,
-        customer_profile=customer_profile,
+        type=UserType.CUSTOMER,
+    )
+
+    CustomerProfile.objects.create(
+        hourly_rate=hourly_rate,
+        user_profile=user_profile,
     )
 
     return user
@@ -124,25 +124,25 @@ def create_owner(
         country=country
     )
 
+    user_profile = UserProfile.objects.create(
+        user=user,
+        address=address,
+        type=UserType.OWNER,
+    )
+
     bank_account = BankAccount.objects.create(
         bank_name=bank_name,
         iban=iban,
         bic=bic,
     )
 
-    owner_profile = OwnerProfile.objects.create(
+    OwnerProfile.objects.create(
+        user_profile=user_profile,
         email=email,
         phone_number=phone_number,
         ust_idnr=ust_idnr,
         bank_account=bank_account,
         nip=nip,
-    )
-
-    UserProfile.objects.create(
-        user=user,
-        address=address,
-        user_type=UserType.OWNER,
-        owner_profile=owner_profile,
     )
 
     return user

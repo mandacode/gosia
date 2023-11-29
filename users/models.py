@@ -20,20 +20,8 @@ class Address(models.Model):
     def __repr__(self):
         return f"<Address: {self.street_address}, {self.city}, {self.country}>"
 
-
-class CustomerProfile(models.Model):
-
-    hourly_rate = models.DecimalField(
-        max_digits=4,
-        decimal_places=2,
-        default=15
-    )
-
-
-class EmployeeProfile(models.Model):
-
-    nip = models.CharField(max_length=10)
-
+    def __str__(self):
+        return f"<Address: {self.street_address}, {self.city}, {self.country}>"
 
 class BankAccount(models.Model):
 
@@ -44,6 +32,11 @@ class BankAccount(models.Model):
 
 class OwnerProfile(models.Model):
 
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='owner_profile'
+    )
     email = models.EmailField(max_length=255)
     phone_number = models.CharField(max_length=255)
     ust_idnr = models.CharField(max_length=100)
@@ -52,7 +45,8 @@ class OwnerProfile(models.Model):
         BankAccount,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        related_name='owner_profile'
     )
 
 
@@ -74,27 +68,28 @@ class UserProfile(models.Model):
         choices=UserType.choices,
         default=UserType.EMPLOYEE
     )
-    customer_profile = models.OneToOneField(
-        CustomerProfile,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='customer_profile'
-    )
-    employee_profile = models.OneToOneField(
-        EmployeeProfile,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='employee_profile'
-    )
-    owner_profile = models.OneToOneField(
-        OwnerProfile,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='owner_profile'
-    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class CustomerProfile(models.Model):
+    hourly_rate = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=15
+    )
+    user_profile = models.OneToOneField(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name='customer_profile'
+    )
+
+
+class EmployeeProfile(models.Model):
+    nip = models.CharField(max_length=10)
+    user_profile = models.OneToOneField(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name='employee_profile'
+    )
