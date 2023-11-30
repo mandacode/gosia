@@ -1,10 +1,9 @@
 from django.db import models
 
-from django.contrib.auth.models import User
+from users.models import User
 
 
 class ScratchpadRecord(models.Model):
-    """Copy of work instance for scratchpad purposes."""
 
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='customer_scratchpad_records')
     employees = models.ManyToManyField(User, related_name='employee_scratchpad_records')
@@ -16,7 +15,7 @@ class ScratchpadRecord(models.Model):
 
 
 class Scratchpad(models.Model):
-    """Scratchpad is a collection of scratchpad records."""
+
     start_date = models.DateField()
     end_date = models.DateField()
     records = models.ManyToManyField(ScratchpadRecord)

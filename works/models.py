@@ -1,5 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import User
+
+from users.models import User
 
 
 class Work(models.Model):
@@ -13,4 +14,7 @@ class Work(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __repr__(self):
-        return f"<Work: {self.customer.full_name()} {self.date} {self.hours}h>"
+        return f"<Work: {self.customer.full_name} {self.date} {self.hours}h>"
+
+    def __str__(self):
+        return f"<Work: {self.customer.full_name} {self.date} {self.hours}h>"
