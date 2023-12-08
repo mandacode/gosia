@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Scratchpads</h2>
+
+    <p><a href="{% url 'scratchpads:create' %}">Create a new scratchpad</a></p>
+
+    {% if scratchpads %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for scratchpad in scratchpads %}
+                    <tr>
+                        <td>{{ scratchpad.id }}</td>
+                        <td>{{ scratchpad.start_date }}</td>
+                        <td>{{ scratchpad.end_date }}</td>
+                        <td><a href="{% url 'scratchpads:detail' scratchpad.id %}">View</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No scratchpads are available.</p>
+    {% endif %}
+
+{% endblock %}

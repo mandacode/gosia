@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Scratchpad {{ scratchpad.id }}</h2>
+    <p><b>Dates:</b> {{ scratchpad.start_date }} - {{ scratchpad.end_date }} </p>
+    <p><b>Records:</b></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Customer</th>
+                <th>Employees</th>
+                <th>Hours</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in scratchpad.records.all %}
+                <tr>
+                    <td>{{ record.customer.name }}</td>
+                    <td>
+                        {% for employee in record.employees.all %}
+                            {{ employee.name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>{{ record.hours }}</td>
+                    <td>{{ record.date }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p><a href="{% url 'scratchpads:list' %}">Back to scratchpads</a></p>
+    <p><a href="{% url 'scratchpads:generate' scratchpad.id %}">Generate Customer Invoice</a></p>
+
+{% endblock %}

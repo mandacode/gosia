@@ -4,6 +4,7 @@ from docx import Document
 from docx.shared import RGBColor, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
+from django.conf import settings
 
 
 def add_contacts_table(
@@ -221,31 +222,31 @@ def generate_employee_invoice(data: dict):
 
 
 def generate_customer_invoice(data: dict):
-    document = Document("templates/customer_invoice.docx")
+    document = Document(settings.BASE_DIR / "invoices" / "generator" / "templates" / "customer_invoice.docx")
     add_contacts_table(
         document=document,
-        recipient_info=data['invoice_recipient'],
-        sender_info=data['invoice_sender']
+        recipient_info=data['recipient'],
+        sender_info=data['sender']
     )
     add_header(
         document=document,
-        invoice_header=data['invoice_header'],
-        invoice_location_and_date=data['invoice_location_and_date']
+        invoice_header=data['header'],
+        invoice_location_and_date=data['location_and_date']
     )
-    add_text(document=document, text=data['invoice_text'])
+    add_text(document=document, text=data['text'])
     add_worked_hours_table_for_customer(
         document=document,
-        worked_hours=data['invoice_worked_hours'],
+        worked_hours=data['worked_hours'],
     )
     add_customer_total(
         document=document,
-        netto="429,00 €",
-        tax="81,51 €",
-        brutto="510,51 €",
+        netto=data['netto'],
+        tax=data['tax'],
+        brutto=data['brutto'],
     )
-    add_signature(document=document, signature=data['invoice_signature'], alignment=WD_ALIGN_PARAGRAPH.LEFT)
-    add_footer(document=document, footer=data['invoice_footer'])
-    document.save("customer_invoice_example.docx")
+    add_signature(document=document, signature=data['signature'], alignment=WD_ALIGN_PARAGRAPH.LEFT)
+    add_footer(document=document, footer=data['footer'])
+    document.save(settings.BASE_DIR / "static" / "docs" / "customer_invoice_example.docx")
 
 
 def main():

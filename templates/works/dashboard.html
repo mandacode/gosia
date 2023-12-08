@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <h2>Dashboard</h2>
+    {% if user.is_authenticated %}
+        <p>Hi {{ user.username }}!</p>
+        <p><a href="{% url 'logout' %}">Log Out</a></p>
+    {% else %}
+        <p>You are not logged in.</p>
+        <p><a href="{% url 'login' %}">Log In</a></p>
+    {% endif %}
+
+    <h2>Works</h2>
+    {% if works %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Employees</th>
+                    <th>Hours</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for work in works %}
+                    <tr>
+                        <td>{{ work.customer.name }}</td>
+                        <td>
+                            {% for employee in work.employees.all %}
+                                {{ employee.name }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>{{ work.hours }}</td>
+                        <td>{{ work.date }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No works are available.</p>
+    {% endif %}
+
+{% endblock %}
+

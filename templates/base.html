@@ -1,0 +1,38 @@
+<!-- templates/base.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Reinigungs Service Berlin{% endblock %}</title>
+    <!-- Add your CSS links or stylesheets here -->
+</head>
+<body>
+    <header>
+        <h1>Reinigungs Service Berlin</h1>
+        <!-- Add any header content or navigation links here -->
+        <nav>
+            <ul>
+                <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li><a href="{% url 'scratchpads:list' %}">Scratchpads</a></li>
+                <!-- Add more navigation links as needed -->
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+            <!-- Default content goes here -->
+        {% endblock %}
+    </main>
+
+    <footer>
+        <!-- Add your footer content here -->
+        <p>&copy; 2023 Reinigungs Service Berlin. All rights reserved.</p>
+    </footer>
+
+    <!-- Add your JavaScript links or scripts here -->
+
+</body>
+</html>

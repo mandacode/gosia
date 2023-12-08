@@ -2,12 +2,11 @@ from django.urls import path
 
 from . import views
 
+app_name = 'scratchpads'
+
 urlpatterns = [
-    path('', views.ScratchpadAPIView.as_view(), name='scratchpad'),
-    path('<int:scratchpad_id>/', views.ScratchpadDetailAPIView.as_view(), name='scratchpad-detail'),
-    path(
-        '<int:scratchpad_id>/records/<int:record_id>/',
-        views.ScratchpadDetailRecordsAPIView.as_view(),
-        name='scratchpad-record-detail'
-    )
+    path('', views.list_scratchpads_view, name='list'),
+    path('create/', views.create_scratchpad_view, name='create'),
+    path('<int:scratchpad_id>/', views.scratchpad_detail_view, name='detail'),
+    path('<int:scratchpad_id>/generate_customer_invoice/', views.generate_customer_invoice_view, name='generate'),
 ]

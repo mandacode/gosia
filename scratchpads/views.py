@@ -1,96 +1,56 @@
 import logging
 
-from rest_framework import views
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.request import Request
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
 
-from .serializers import CreateScratchpadSerializer, ScratchpadSerializer, UpdateScratchpadRecordSerializer, \
-    ScratchpadRecordSerializer
-from .services import create_scratchpad, get_scratchpad, delete_scratchpad, update_scratchpad_record, \
-    delete_scratchpad_record
-from .models import Scratchpad, ScratchpadRecord
+from invoices.forms import CreateCustomerInvoiceForm
+from invoices.services import create_customer_invoice
+from .forms import CreateScratchpadForm
+from .services import create_scratchpad, get_scratchpad, get_scratchpads
 
 logger = logging.getLogger(__name__)
 
 
-class ScratchpadAPIView(views.APIView):
+@login_required
+def create_scratchpad_view(request):
+    if request.method == 'POST':
+        form = CreateScratchpadForm(request.POST)
 
-    def post(self, request: Request) -> Response:
-        input_serializer = CreateScratchpadSerializer(data=request.data)
-        input_serializer.is_valid(raise_exception=True)
+        if form.is_valid():
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+            scratchpad = create_scratchpad(start_date, end_date)
+            return redirect('scratchpads:detail', scratchpad_id=scratchpad.pk)
 
-        scratchpad = create_scratchpad(**input_serializer.validated_data)
-        output_serializer = ScratchpadSerializer(scratchpad)
-        logger.info(f"Create new scratchpad for date range: {request.data['start_date']} - {request.data['end_date']}.")
-        return Response(data=output_serializer.data, status=status.HTTP_201_CREATED)
+    else:
+        form = CreateScratchpadForm()
 
-
-class ScratchpadDetailAPIView(views.APIView):
-
-    def get(self, request: Request, scratchpad_id: int) -> Response:
-        try:
-            scratchpad = get_scratchpad(scratchpad_id=scratchpad_id)
-        except Scratchpad.DoesNotExist:
-            data = {"error": "Scratchpad not found."}
-            logger.error(data["error"])
-            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = ScratchpadSerializer(scratchpad)
-        logger.info(f"Get scratchpad | Id: {scratchpad_id}")
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-    def delete(self, request: Request, scratchpad_id: int) -> Response:
-        try:
-            delete_scratchpad(scratchpad_id=scratchpad_id)
-        except Scratchpad.DoesNotExist:
-            data = {"error": "Scratchpad not found."}
-            logger.error(data["error"])
-            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
-
-        logger.info(f"Delete scratchpad | Id: {scratchpad_id}")
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    return render(request, 'scratchpads/create.html', {'form': form})
 
 
-class ScratchpadDetailRecordsAPIView(views.APIView):
+@login_required
+def scratchpad_detail_view(request, scratchpad_id):
+    scratchpad = get_scratchpad(scratchpad_id=scratchpad_id)
+    return render(request, 'scratchpads/detail.html', {'scratchpad': scratchpad})
 
-    def patch(self, request: Request, scratchpad_id: int, record_id: int) -> Response:
-        input_serializer = UpdateScratchpadRecordSerializer(data=request.data)
-        input_serializer.is_valid(raise_exception=True)
 
-        try:
-            record = update_scratchpad_record(
-                scratchpad_id=scratchpad_id,
-                record_id=record_id,
-                **input_serializer.validated_data
-            )
-        except Scratchpad.DoesNotExist:
-            data = {"error": "Scratchpad not found."}
-            logger.error(data["error"])
-            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
+@login_required
+def list_scratchpads_view(request):
+    scratchpads = get_scratchpads()
+    return render(request, 'scratchpads/list.html', {'scratchpads': scratchpads})
 
-        except ScratchpadRecord.DoesNotExist:
-            data = {"error": "ScratchpadRecord not found."}
-            logger.error(data["error"])
-            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
 
-        output_serializer = ScratchpadRecordSerializer(record)
-        logger.info(f"Update scratchpad | Id: {scratchpad_id} | record: {record_id}.")
-        return Response(data=output_serializer.data, status=status.HTTP_200_OK)
+@login_required
+def generate_customer_invoice_view(request, scratchpad_id):
 
-    def delete(self, request: Request, scratchpad_id: int, record_id: int) -> Response:
+    if request.method == 'POST':
+        form = CreateCustomerInvoiceForm(request.POST)
 
-        try:
-            delete_scratchpad_record(scratchpad_id=scratchpad_id, record_id=record_id)
-        except Scratchpad.DoesNotExist:
-            data = {"error": "Scratchpad not found."}
-            logger.error(data["error"])
-            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
+        if form.is_valid():
+            customer_id = form.cleaned_data['customer']
+            invoice = create_customer_invoice(customer_id=customer_id, scratchpad_id=scratchpad_id)
+            # return redirect('invoices:detail', invoice_id=invoice.pk)
 
-        except ScratchpadRecord.DoesNotExist:
-            data = {"error": "ScratchpadRecord not found."}
-            logger.error(data["error"])
-            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
+    form = CreateCustomerInvoiceForm()
 
-        logger.info(f"Delete scratchpad | Id: {scratchpad_id} | record: {record_id}.")
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    return render(request, 'invoices/create.html', {'form': form})

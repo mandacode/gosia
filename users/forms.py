@@ -1,42 +1,35 @@
 from django import forms
 
-from .models import User, UserType
+from .models import User
 
 
-class UserForm(forms.ModelForm):
+class LoginForm(forms.Form):
 
+    email = forms.EmailField(max_length=255)
+    password = forms.CharField(max_length=255, widget=forms.PasswordInput)
+
+
+class RegisterForm(forms.Form):
+
+    email = forms.EmailField(max_length=255)
+    password = forms.CharField(max_length=255, widget=forms.PasswordInput)
+    password_repeat = forms.CharField(max_length=255, widget=forms.PasswordInput)
     first_name = forms.CharField(max_length=255)
     last_name = forms.CharField(max_length=255)
-    type = forms.ChoiceField(choices=UserType.choices)
-    street_address = forms.CharField(max_length=255)
     city = forms.CharField(max_length=255)
     country = forms.CharField(max_length=255)
     zip_code = forms.CharField(max_length=6)
+    street_address = forms.CharField(max_length=255)
+    bank_name = forms.CharField(max_length=255)
+    iban = forms.CharField(max_length=255)
+    bic = forms.CharField(max_length=255)
+    phone_number = forms.CharField(max_length=255)
+    ust_idnr = forms.CharField(max_length=100)
+    nip = forms.CharField(max_length=10)
 
-    class Meta:
-        model = User
-        fields = ('first_name', 'last_name', 'type')
+    def clean(self) -> dict:
 
-    def _set_initial_for_address_field(self, field_name):
+        if self.cleaned_data['password'] != self.cleaned_data['password_repeat']:
+            raise forms.ValidationError("Passwords do not match.")
 
-        if not hasattr(self.instance, 'profile'):
-            return
-
-        if not self.instance.profile.address:
-            return
-
-        return getattr(self.instance.profile.address, field_name)
-
-    def get_initial_for_field(self, field, field_name):
-
-        if field_name == 'type':
-
-            if not hasattr(self.instance, 'profile'):
-                return UserType.EMPLOYEE
-
-            return self.instance.profile.type
-
-        if field_name in ['street_address', 'city', 'country', 'zip_code']:
-            return self._set_initial_for_address_field(field_name)
-
-        return super().get_initial_for_field(field, field_name)
+        return self.cleaned_data

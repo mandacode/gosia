@@ -43,7 +43,7 @@ def create_work(
     return work
 
 
-def list_works() -> tp.List[Work]:
+def get_works() -> tp.List[Work]:
     works = Work.objects.all()
     return works
 

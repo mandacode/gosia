@@ -5,6 +5,11 @@ from works.models import Work
 from .models import Scratchpad, ScratchpadRecord
 
 
+def get_scratchpads() -> tp.List[Scratchpad]:
+    scratchpads = Scratchpad.objects.all()
+    return scratchpads
+
+
 def create_scratchpad(start_date: datetime.date, end_date: datetime.date) -> Scratchpad:
     works = Work.objects.filter(date__gte=start_date, date__lte=end_date)
     scratchpad = Scratchpad.objects.create(start_date=start_date, end_date=end_date)
